@@ -1,12 +1,16 @@
 class CellState {
-  static WHITE = 0;
-  static BLACK = 1;
+  static EMPTY = 0;
+  static FILL = 1;
 }
 
 class Cell {
-  constructor(state = CellState.WHITE) {
+  constructor(state = CellState.EMPTY) {
     this.state = state;
     this._a = new Set();
+  }
+
+  getAutomatons() {
+    return [...this._a];
   }
 
   add(automaton) {
@@ -41,7 +45,7 @@ class CellMatrix {
       for (let j = 0; j < w; j++) {
         r.push(new Cell());
       }
-      m.push();
+      m.push(r);
     }
     this._w = w;
     this._h = h;
@@ -64,16 +68,16 @@ class CellMatrix {
     return this._m[y][x];
   }
 
-  getPos(x, y, direction) {
+  getPos(x, y, direction, distance = 1) {
     switch (direction) {
       case Direction.N:
-        return { x, y: y === 0 ? this._h - 1 : y - 1 };
+        return { x, y: (y + this._h - distance) % this._h };
       case Direction.S:
-        return { x, y: y === this._h - 1 ? 0 : y + 1 };
+        return { x, y: (y + distance) % this._h };
       case Direction.W:
-        return { x: x === 0 ? this._w - 1 : x - 1, y };
+        return { x: (x + this._w - distance) % this._w, y };
       case Direction.E:
-        return { x: x === this._w - 1 ? 0 : x + 1, y };
+        return { x: (x + distance) % this._w, y };
     }
   }
 }
@@ -83,6 +87,10 @@ class Direction {
   static E = 1;
   static S = 2;
   static W = 3;
+
+  static get RANDOM() {
+    return Math.floor(Math.random() * 4);
+  }
 
   static clockwise(direction) {
     return (direction + 1) % 4;

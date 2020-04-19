@@ -1,26 +1,62 @@
-import { CellState, CellMatrix } from "./scripts/util/matrix";
-import { Ant } from "./scripts/automaton";
+const GRID_W = 300;
+const GRID_H = 200;
+const PIXEL_W = 4;
+const TICK_RATE = 60;
 
-const GRID_W = 500;
-const GRID_H = 500;
-const PIXEL_W = 2;
+//variables setup
+let automaton = new RadioVariable("Mode", { value: "Ant" });
+let drawMode = new ToggleVariable("DrawMode");
 
 const matrix = new CellMatrix(GRID_W, GRID_H);
-let automatons = [new Ant(GRID_W / 2, GRID_H / 2, matrix)];
+let automatons = [];
 let newAutomatons;
 
 function setup() {
   createCanvas(GRID_W * PIXEL_W, GRID_H * PIXEL_W).parent("draw-space");
   noStroke();
+  frameRate(TICK_RATE);
+
+  //ui set up
+  const buttonBar = document.getElementById("button-bar");
+  const display = document.getElementById("display");
+
+  buttonBar.appendChild(drawMode.button);
+  buttonBar.appendChild(automaton.getNewButton("Ant", "Ant"));
+  buttonBar.appendChild(automaton.getNewButton("Termite", "Termite"));
+  buttonBar.appendChild(automaton.getNewButton("Beetle", "Beetle"));
+  buttonBar.appendChild(automaton.getNewButton("Big Ant", "Big Ant"));
+
+  display.appendChild(automaton.display)
+}
+
+function spawn(x, y) {
+  let a;
+  switch (automaton.value) {
+    case "Ant":
+      a = new Ant(x, y, matrix, Direction.RANDOM);
+      break;
+    case "Big Ant":
+      a = new BigAnt(x, y, matrix, Direction.RANDOM);
+      break;
+    case "Termite":
+      a = new Termite(x, y, matrix, Direction.RANDOM);
+      break;
+    case "Beetle":
+      a = new Beetle(x, y, matrix, Direction.RANDOM);
+  }
+  automatons.push(a);
 }
 
 function draw() {
-  //run interactions and render interactions
-  automatons.forEach((a) =>
-    a.interact().forEach(({ x, y }) => renderCell(x, y))
-  );
+  //spawn automatons
+  automatons.forEach((a) => a.spawn());
 
-  //update new positions + remove dead automatons + obtain new automatons + render automatons
+  //run interactions and render interactions
+  automatons.forEach((a) => {
+    a.interact().forEach(({ x, y, r, g, b }) => colourCell(x, y, r, g, b));
+  });
+
+  //update new positions + remove dead automatons + obtain new automatons + render current automatons
   newAutomatons = [];
   automatons = automatons.filter((a) => {
     if (a.alive) {
@@ -28,6 +64,7 @@ function draw() {
       renderAutomaton(a);
       return true;
     } else {
+      a.die();
       return false;
     }
   });
@@ -35,26 +72,38 @@ function draw() {
   //render new automatons
   newAutomatons.forEach(renderAutomaton);
 
+  //update automatons
   automatons = automatons.concat(newAutomatons);
+
+  if (mouseIsPressed && drawMode.on) {
+    passInGridCoordsFromMouse(spawn);
+  }
+}
+
+function mouseClicked() {
+  if (!drawMode.on) {
+    passInGridCoordsFromMouse(spawn);
+  }
+}
+
+function passInGridCoordsFromMouse(callback) {
+  if (
+    mouseX > 0 &&
+    mouseY > 0 &&
+    mouseX < GRID_W * PIXEL_W &&
+    mouseY < GRID_H * PIXEL_W
+  ) {
+    const X = Math.floor(mouseX / PIXEL_W);
+    const Y = Math.floor(mouseY / PIXEL_W);
+    callback(X, Y);
+  }
 }
 
 function renderAutomaton(a) {
-  const { x, y, r, g, b } = a.getColourPoints();
-  colourCell(x, y, r, g, b);
-}
-
-function renderCell(x, y) {
-  switch (matrix.getCell(x, y).state) {
-    case CellState.WHITE:
-      colourCell(x, y, 255, 255, 255);
-      break;
-    case CellState.BLACK:
-      colourCell(x, y, 0, 0, 0);
-      break;
-  }
+  a.getColourPoints().forEach(({ x, y, r, g, b }) => colourCell(x, y, r, g, b));
 }
 
 function colourCell(x, y, r, g, b) {
   fill(r, g, b);
-  rect(x * GRID_W * PIXEL_W, y * GRID_H * PIXEL_W, PIXEL_W, PIXEL_W);
+  rect(x * PIXEL_W, y * PIXEL_W, PIXEL_W, PIXEL_W);
 }

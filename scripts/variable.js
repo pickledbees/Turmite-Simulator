@@ -66,7 +66,6 @@ class ToggleVariable {
       on = false,
       buttonId = "",
       buttonClassList = [],
-      buttonActiveClass = "",
       displayId = "",
       displayClassList = [],
     } = options;
@@ -79,7 +78,6 @@ class ToggleVariable {
     const button = document.createElement("button");
     button.setAttribute("id", buttonId);
     buttonClassList.forEach((c) => button.classList.add(c));
-    if (buttonActiveClass) button.classList.add(buttonActiveClass);
     button.innerText = `${name}: OFF`;
 
     //create display
@@ -114,5 +112,54 @@ class ToggleVariable {
 
   get on() {
     return this._on;
+  }
+}
+
+class RadioVariable {
+  constructor(name, options = {}) {
+    const {
+      value = null,
+      buttonClassList = [],
+      displayId = "",
+      displayClassList = [],
+    } = options;
+
+    this._name = name;
+    this._callbacks = [];
+    this._value = value;
+    this._buttonClassList = buttonClassList;
+
+    //create display
+    const display = document.createElement("p");
+    display.innerText = `${name}: ${this._value}`;
+    if (displayId) display.setAttribute("id", displayId);
+    displayClassList.forEach((c) => display.classList.add(c));
+
+    this._display = display;
+  }
+
+  subscribe(callback) {
+    this._callbacks.push(callback);
+  }
+
+  getNewButton(name, value) {
+    const button = document.createElement("button");
+    this._buttonClassList.forEach((c) => button.classList.add(c));
+    button.innerText = name;
+
+    button.onclick = (e) => {
+      this._value = value;
+      this._display.innerText = `${this._name}: ${this._value}`;
+    };
+
+    return button;
+  }
+
+  get display() {
+    return this._display;
+  }
+
+  get value() {
+    return this._value;
   }
 }

@@ -3,8 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <title>Automatons</title>
+  <script src="scripts/p5.min.js"></script>
+  <script src="scripts/variable.js"></script>
+  <script src="scripts/matrix.js"></script>
+  <script src="scripts/automaton.js"></script>
+  <script src="scripts/sketch.js"></script>
+  <style>
+    #draw-space {
+      width: 1200px;
+      margin: auto;
+    }
+    #draw-space canvas {
+      border: 1px solid black;
+    }
+    #button-bar {
+      display: flex;
+      justify-content: center;
+    }
+    button {
+      margin: 5px;
+    }
+    #display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
 </head>
 <body>
 <div id="draw-space"></div>
+<section id="button-bar"></section>
+<section id="display"></section>
 </body>
 </html>
