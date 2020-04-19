@@ -18,9 +18,6 @@ const Direction = {
   get RANDOM() {
     return Math.floor(Math.random() * 4);
   },
-  clockwise: (direction) => (direction + 1) % 4,
-  counterClockwise: (direction) => (direction + 3) % 4,
-  invert: (direction) => (direction + 2) % 4,
 };
 
 const Rotation = {
