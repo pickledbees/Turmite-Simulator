@@ -1,10 +1,50 @@
-class CellState {
-  static EMPTY = 0;
-  static FILL = 1;
+const RGB = {
+  RED: { r: 255, g: 0, b: 0 },
+  BLUE: { r: 0, g: 0, b: 255 },
+  YELLOW: { r: 255, g: 255, b: 0 },
+  GREEN: { r: 0, g: 255, b: 0 },
+  MAGENTA: { r: 255, g: 0, b: 255 },
+  CYAN: { r: 0, g: 255, b: 255 },
+  ORANGE: { r: 255, g: 255, b: 0 },
+  BLACK: { r: 0, g: 0, b: 0 },
+  WHITE: { r: 255, g: 255, b: 255 },
+};
+
+const Direction = {
+  N: 0,
+  E: 1,
+  S: 2,
+  W: 3,
+  get RANDOM() {
+    return Math.floor(Math.random() * 4);
+  },
+  clockwise: (direction) => (direction + 1) % 4,
+  counterClockwise: (direction) => (direction + 3) % 4,
+  invert: (direction) => (direction + 2) % 4,
+};
+
+const Rotation = {
+  NONE: 0,
+  CLOCKWISE: 1,
+  COUNTERCLOCKWISE: 3,
+  INVERT: 2,
+};
+
+function changeDirection(direction, rotation) {
+  return (direction + rotation) % 4;
+}
+
+function cellStateToRGB(cellState) {
+  switch (cellState) {
+    case 0:
+      return RGB.WHITE;
+    case 1:
+      return RGB.BLACK;
+  }
 }
 
 class Cell {
-  constructor(state = CellState.EMPTY) {
+  constructor(state = 0) {
     this.state = state;
     this._a = new Set();
   }
@@ -27,13 +67,6 @@ class Cell {
 
   clear() {
     this._a.clear();
-  }
-}
-
-class CellMatrixPosition {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
   }
 }
 
@@ -79,28 +112,5 @@ class CellMatrix {
       case Direction.E:
         return { x: (x + distance) % this._w, y };
     }
-  }
-}
-
-class Direction {
-  static N = 0;
-  static E = 1;
-  static S = 2;
-  static W = 3;
-
-  static get RANDOM() {
-    return Math.floor(Math.random() * 4);
-  }
-
-  static clockwise(direction) {
-    return (direction + 1) % 4;
-  }
-
-  static counterClockwise(direction) {
-    return (direction + 3) % 4;
-  }
-
-  static invert(direction) {
-    return (direction + 2) % 4;
   }
 }

@@ -33,7 +33,7 @@ class SliderVariable {
 
     //set listener
     slider.onchange = (e) => {
-      this._val = e.target.value;
+      this._val = parseInt(e.target.value);
       this._display.innerText = `${this._name}: ${this._val}`;
       this._callbacks.forEach((c) => c(this._val));
     };

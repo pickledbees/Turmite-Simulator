@@ -1,11 +1,16 @@
 const GRID_W = 300;
-const GRID_H = 200;
+const GRID_H = 150;
 const PIXEL_W = 4;
 const TICK_RATE = 60;
 
 //variables setup
 let automaton = new RadioVariable("Mode", { value: "Ant" });
-let drawMode = new ToggleVariable("DrawMode");
+let drawMode = new ToggleVariable("Draw Mode");
+let tickRate = new SliderVariable("Tick Rate", {
+  value: TICK_RATE,
+  min: 0,
+  max: 60,
+});
 
 const matrix = new CellMatrix(GRID_W, GRID_H);
 let automatons = [];
@@ -14,7 +19,6 @@ let newAutomatons;
 function setup() {
   createCanvas(GRID_W * PIXEL_W, GRID_H * PIXEL_W).parent("draw-space");
   noStroke();
-  frameRate(TICK_RATE);
 
   //ui set up
   const buttonBar = document.getElementById("button-bar");
@@ -24,25 +28,34 @@ function setup() {
   buttonBar.appendChild(automaton.getNewButton("Ant", "Ant"));
   buttonBar.appendChild(automaton.getNewButton("Termite", "Termite"));
   buttonBar.appendChild(automaton.getNewButton("Beetle", "Beetle"));
+  buttonBar.appendChild(automaton.getNewButton("Spider", "Spider"));
   buttonBar.appendChild(automaton.getNewButton("Big Ant", "Big Ant"));
 
-  display.appendChild(automaton.display)
+  display.appendChild(automaton.display);
+  display.appendChild(tickRate.display);
+  display.appendChild(tickRate.slider);
+
+  tickRate.subscribe(frameRate);
 }
 
 function spawn(x, y) {
   let a;
   switch (automaton.value) {
     case "Ant":
-      a = new Ant(x, y, matrix, Direction.RANDOM);
-      break;
-    case "Big Ant":
-      a = new BigAnt(x, y, matrix, Direction.RANDOM);
+      a = new Turmite(x, y, matrix, ANT, RGB.RED, Direction.W);
       break;
     case "Termite":
-      a = new Termite(x, y, matrix, Direction.RANDOM);
+      a = new Turmite(x, y, matrix, TERMITE, RGB.CYAN, Direction.W);
       break;
     case "Beetle":
-      a = new Beetle(x, y, matrix, Direction.RANDOM);
+      a = new Turmite(x, y, matrix, BEETLE, RGB.GREEN, Direction.W);
+      break;
+    case "Spider":
+      a = new Turmite(x, y, matrix, SPIDER, RGB.MAGENTA, Direction.W);
+      break;
+    case "Big Ant":
+      a = new BigAnt(x, y, matrix, Direction.W);
+      break;
   }
   automatons.push(a);
 }
@@ -64,7 +77,7 @@ function draw() {
       renderAutomaton(a);
       return true;
     } else {
-      a.die();
+      a.dispose();
       return false;
     }
   });
