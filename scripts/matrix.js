@@ -8,6 +8,7 @@ const RGB = {
   ORANGE: { r: 255, g: 255, b: 0 },
   BLACK: { r: 0, g: 0, b: 0 },
   WHITE: { r: 255, g: 255, b: 255 },
+  DARKGREY: {r:33, g:33, b:33},
 };
 
 const Direction = {
@@ -18,9 +19,6 @@ const Direction = {
   get RANDOM() {
     return Math.floor(Math.random() * 4);
   },
-  clockwise: (direction) => (direction + 1) % 4,
-  counterClockwise: (direction) => (direction + 3) % 4,
-  invert: (direction) => (direction + 2) % 4,
 };
 
 const Rotation = {

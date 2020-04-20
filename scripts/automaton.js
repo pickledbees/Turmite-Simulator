@@ -124,7 +124,7 @@ class Turmite extends Automaton {
     cell.state = c;
     this._s = s;
     this._d = changeDirection(this._d, r);
-    const rgb = cellStateToRGB(cell.state);
+    const rgb = cellStateToRGB(c);
     return [{ ...this._p, ...rgb }];
   }
 
@@ -168,16 +168,8 @@ class BigAnt extends Automaton {
     }
   }
 
-  _occupy() {
-    this._iterateOverOccupiedCells((cell) => cell.add(this));
-  }
-
-  _vacate() {
-    this._iterateOverOccupiedCells((cell) => cell.delete(this));
-  }
-
   spawn() {
-    this._occupy();
+    this._iterateOverOccupiedCells((cell) => cell.add(this));
   }
 
   interact() {
@@ -190,17 +182,15 @@ class BigAnt extends Automaton {
     let p = 0;
     this._iterateOverOccupiedCells((cell) => (p += cell.state === 0 ? -1 : 1));
     let newState;
-    let rgb;
     if (p > 0) {
       this._d = changeDirection(this._d, Rotation.CLOCKWISE);
       newState = 0;
-      rgb = RGB.WHITE;
     } else {
       this._d = changeDirection(this._d, Rotation.COUNTERCLOCKWISE);
       newState = 1;
-      rgb = RGB.BLACK;
     }
     let updated = [];
+    const rgb = cellStateToRGB(newState);
     this._iterateOverOccupiedCells((cell, x, y) => {
       cell.state = newState;
       updated.push({ x, y, ...rgb });
@@ -209,7 +199,7 @@ class BigAnt extends Automaton {
   }
 
   dispose() {
-    this._vacate();
+    this._iterateOverOccupiedCells((cell) => cell.delete(this));
   }
 
   move() {
@@ -217,9 +207,9 @@ class BigAnt extends Automaton {
       return [];
     }
 
-    this._vacate();
+    this.dispose();
     this._p = this._getPos(this._p.x, this._p.y, this._d, BigAnt.SIZE);
-    this._occupy();
+    this.spawn();
 
     return [];
   }
@@ -234,7 +224,7 @@ class BigAnt extends Automaton {
 }
 
 BigAnt.SIZE = 3;
-BigAnt.SLOW_FACTOR = 9;
+BigAnt.SLOW_FACTOR = BigAnt.SIZE * BigAnt.SIZE;
 
 function randomByte() {
   return Math.floor(Math.random() * 256);

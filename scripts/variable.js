@@ -26,15 +26,15 @@ class SliderVariable {
     sliderClassList.forEach((c) => slider.classList.add(c));
 
     //create display element
-    const display = document.createElement("p");
-    display.innerText = `${name}: ${value}`;
-    if (displayId) display.setAttribute("id", displayId);
-    displayClassList.forEach((c) => display.classList.add(c));
+    const display = new Display(`${name}: ${value}`, {
+      id: displayId,
+      classList: displayClassList,
+    });
 
     //set listener
     slider.onchange = (e) => {
       this._val = parseInt(e.target.value);
-      this._display.innerText = `${this._name}: ${this._val}`;
+      this._display.show(`${this._name}: ${this._val}`);
       this._callbacks.forEach((c) => c(this._val));
     };
 
@@ -51,7 +51,7 @@ class SliderVariable {
   }
 
   get display() {
-    return this._display;
+    return this._display.element;
   }
 
   get value() {
@@ -78,20 +78,20 @@ class ToggleVariable {
     const button = document.createElement("button");
     button.setAttribute("id", buttonId);
     buttonClassList.forEach((c) => button.classList.add(c));
-    button.innerText = `${name}: OFF`;
+    button.innerText = `${name}: ${on ? "ON" : "OFF"}`;
 
     //create display
-    const display = document.createElement("p");
-    display.innerText = `${name}: OFF`;
-    if (displayId) display.setAttribute("id", displayId);
-    displayClassList.forEach((c) => display.classList.add(c));
+    const display = new Display(`${name}: ${on ? "ON" : "OFF"}`, {
+      id: displayId,
+      classList: displayClassList,
+    });
 
     button.onclick = (e) => {
       this._on = !this._on;
       this._callbacks.forEach((c) => c(this._on));
       const txt = `${this._name}: ${this._on ? "ON" : "OFF"}`;
       this._button.innerText = txt;
-      this._display.innerText = txt;
+      this._display.show(txt);
     };
 
     this._button = button;
@@ -107,7 +107,7 @@ class ToggleVariable {
   }
 
   get display() {
-    return this._display;
+    return this._display.element;
   }
 
   get on() {
@@ -130,11 +130,10 @@ class RadioVariable {
     this._buttonClassList = buttonClassList;
 
     //create display
-    const display = document.createElement("p");
-    display.innerText = `${name}: ${this._value}`;
-    if (displayId) display.setAttribute("id", displayId);
-    displayClassList.forEach((c) => display.classList.add(c));
-
+    const display = new Display(`${name}: ${this._value}`, {
+      id: displayId,
+      classList: displayClassList,
+    });
     this._display = display;
   }
 
@@ -147,19 +146,40 @@ class RadioVariable {
     this._buttonClassList.forEach((c) => button.classList.add(c));
     button.innerText = name;
 
-    button.onclick = (e) => {
+    button.onclick = () => {
       this._value = value;
-      this._display.innerText = `${this._name}: ${this._value}`;
+      this._display.show(`${this._name}: ${this._value}`);
     };
 
     return button;
   }
 
   get display() {
-    return this._display;
+    return this._display.element;
   }
 
   get value() {
     return this._value;
+  }
+}
+
+class Display {
+  constructor(text, options = {}) {
+    const { id = "", classList = [] } = options;
+
+    const display = document.createElement("p");
+    display.innerText = text;
+    if (id) display.setAttribute("id", id);
+    classList.forEach((c) => display.classList.add(c));
+
+    this._display = display;
+  }
+
+  show(text) {
+    this._display.innerText = text;
+  }
+
+  get element() {
+    return this._display;
   }
 }

@@ -1,16 +1,17 @@
 const GRID_W = 300;
-const GRID_H = 150;
+const GRID_H = 180;
 const PIXEL_W = 4;
 const TICK_RATE = 60;
 
 //variables setup
-let automaton = new RadioVariable("Mode", { value: "Ant" });
+let pen = new RadioVariable("Selected", { value: "Ant" });
 let drawMode = new ToggleVariable("Draw Mode");
 let tickRate = new SliderVariable("Tick Rate", {
   value: TICK_RATE,
   min: 0,
   max: 60,
 });
+let allowDeath = new ToggleVariable("Allow Death", { on: true });
 
 const matrix = new CellMatrix(GRID_W, GRID_H);
 let automatons = [];
@@ -24,14 +25,27 @@ function setup() {
   const buttonBar = document.getElementById("button-bar");
   const display = document.getElementById("display");
 
-  buttonBar.appendChild(drawMode.button);
-  buttonBar.appendChild(automaton.getNewButton("Ant", "Ant"));
-  buttonBar.appendChild(automaton.getNewButton("Termite", "Termite"));
-  buttonBar.appendChild(automaton.getNewButton("Beetle", "Beetle"));
-  buttonBar.appendChild(automaton.getNewButton("Spider", "Spider"));
-  buttonBar.appendChild(automaton.getNewButton("Big Ant", "Big Ant"));
+  const fastForwardButton = document.createElement("button");
+  fastForwardButton.innerText = "Fast Forward";
+  fastForwardButton.onclick = () => {
+    let i = 1000;
+    while (i--) {
+      iterate();
+    }
+  };
 
-  display.appendChild(automaton.display);
+  buttonBar.appendChild(drawMode.button);
+  buttonBar.appendChild(allowDeath.button);
+  buttonBar.appendChild(pen.getNewButton("Ant", "Ant"));
+  buttonBar.appendChild(pen.getNewButton("Termite", "Termite"));
+  buttonBar.appendChild(pen.getNewButton("Beetle", "Beetle"));
+  buttonBar.appendChild(pen.getNewButton("Spider", "Spider"));
+  buttonBar.appendChild(pen.getNewButton("Big Ant", "Big Ant"));
+  buttonBar.appendChild(pen.getNewButton("Block", "Block"));
+  buttonBar.appendChild(pen.getNewButton("Erase", "Erase"));
+  buttonBar.appendChild(fastForwardButton);
+
+  display.appendChild(pen.display);
   display.appendChild(tickRate.display);
   display.appendChild(tickRate.slider);
 
@@ -40,7 +54,7 @@ function setup() {
 
 function spawn(x, y) {
   let a;
-  switch (automaton.value) {
+  switch (pen.value) {
     case "Ant":
       a = new Turmite(x, y, matrix, ANT, RGB.RED, Direction.W);
       break;
@@ -54,13 +68,36 @@ function spawn(x, y) {
       a = new Turmite(x, y, matrix, SPIDER, RGB.MAGENTA, Direction.W);
       break;
     case "Big Ant":
-      a = new BigAnt(x, y, matrix, Direction.W);
+      //enable snap
+      const d = BigAnt.SIZE;
+      const X = x - (x % d);
+      const Y = y - (y % d);
+      a = new BigAnt(X, Y, matrix, Direction.W);
+      break;
+    case "Block":
+      drawOnMatrix(x, y, 1);
+      break;
+    case "Erase":
+      drawOnMatrix(x, y, 0);
       break;
   }
-  automatons.push(a);
+  if (a) {
+    automatons.push(a);
+    renderAutomaton(a);
+  }
 }
 
 function draw() {
+  iterate();
+
+  if (mouseIsPressed && drawMode.on) {
+    passInGridCoordsFromMouse(spawn);
+  }
+
+  displayStats();
+}
+
+function iterate() {
   //spawn automatons
   automatons.forEach((a) => a.spawn());
 
@@ -72,6 +109,9 @@ function draw() {
   //update new positions + remove dead automatons + obtain new automatons + render current automatons
   newAutomatons = [];
   automatons = automatons.filter((a) => {
+    if (!allowDeath.on) {
+      a.alive = true;
+    }
     if (a.alive) {
       newAutomatons = newAutomatons.concat(a.move());
       renderAutomaton(a);
@@ -87,10 +127,20 @@ function draw() {
 
   //update automatons
   automatons = automatons.concat(newAutomatons);
+}
 
-  if (mouseIsPressed && drawMode.on) {
-    passInGridCoordsFromMouse(spawn);
-  }
+function drawOnMatrix(x, y, state = 1) {
+  matrix.getCell(x, y).state = state;
+  const { r, g, b } = cellStateToRGB(state);
+  colourCell(x, y, r, g, b);
+}
+
+function displayStats() {
+  fill(0);
+  rect(0, 0, 150, 22);
+  fill(255);
+  textSize(15);
+  text(`Population: ${automatons.length}`, 5, 15);
 }
 
 function mouseClicked() {
